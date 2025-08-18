@@ -1,34 +1,31 @@
 {
   "name": "blog_top",
   "version": "1.0.0",
-  "description": "Project for practicing JWT and API creation",
-  "main": "app.js",
+  "private": true,
+  "packageManager": "pnpm@9.4.0",
+  "description": "Mono repo for Blog TOP Project",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register --transpile-only backend/src/app.ts"
+    "dev": "pnpm -r --parallel run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiernans/blog_top.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^6.14.0",
-    "dotenv": "^17.2.1",
-    "ejs": "^3.1.10",
-    "express": "^5.1.0",
-    "passport-jwt": "^4.0.1"
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kiernans/blog_top/issues"
   },
+  "homepage": "https://github.com/kiernans/blog_top#readme",
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.2.1",
     "eslint": "^9.33.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "globals": "^16.3.0",
     "prettier": "^3.6.2",
-    "prisma": "^6.14.0",
-    "ts-node-dev": "^2.0.0",
-    "tsconfig-paths": "^4.2.0",
-    "typescript-eslint": "^8.40.0"
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2"
   }
 }

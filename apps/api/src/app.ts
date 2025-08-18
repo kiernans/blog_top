@@ -10,7 +10,7 @@ const app: Express = express();
 app.use(express.urlencoded({ extended: false }));
 
 // Setting up listener
-const PORT = process.env.EXPRESS_PORT;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
