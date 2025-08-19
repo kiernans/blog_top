@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import routes from './routes';
 
 // Required for process.env
 dotenv.config();
@@ -7,7 +8,10 @@ dotenv.config();
 // Standard setup with Express and EJS
 const app: Express = express();
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/', routes);
 
 // Setting up listener
 const PORT = 3002;
