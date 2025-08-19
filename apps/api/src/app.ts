@@ -26,10 +26,19 @@ passport.use(
   ),
 );
 
+// Added to avoid having to pass req.user into each controller/view
+// Puts into currentUser local variable
+// MUST BE AFTER PASSPORT AND BEFORE ROUTER for controller/views to be able to see
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
+  next();
+});
+
+// Routing
 app.use('/', routes);
 
 // Setting up listener
-const PORT = 3002;
+const PORT = process.env.SERVER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
