@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import { body, validationResult, matchedData } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { VerifiedCallback } from 'passport-jwt';
+import passport from 'passport';
 
 const validateUser = [
   body('email')
@@ -35,7 +37,6 @@ const login = [
         },
         select: {
           id: true,
-          email: true,
           name: true,
           password: true,
         },
@@ -50,15 +51,17 @@ const login = [
       // Create JWT and send back to client
       jwt.sign(
         // Used to create token, don't include sensitive info
-        { name: user.name, email: user.email },
-        'secret key',
+        { id: user.id, name: user.name },
+        // Tell typescript it will definitely be non null
+        process.env.JWT_SECRET!,
         { expiresIn: '1200s' },
         (err, token) => {
+          if (err) throw err;
+
           return res.status(201).json({
             success: true,
             message: 'Login successful',
-            data: user,
-            token,
+            token: 'Bearer ' + token,
           });
         },
       );
@@ -74,4 +77,33 @@ const login = [
   },
 ];
 
-export default { login };
+// JWT Payload contains user info provided when JWT was created
+async function verifyFunction(jwt_payload: any, done: VerifiedCallback) {
+  const id = jwt_payload.id;
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      // Select what properties to include in req.user
+      // WARNING: Don't include sensitive info
+      select: {
+        id: true,
+        role: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // User not found, authentication failed
+    if (!user) return done(null, false);
+
+    // User found, authentication succeeded
+    return done(null, user);
+  } catch (err) {
+    console.log(err);
+    done(err, false);
+  }
+}
+
+export default { login, verifyFunction };

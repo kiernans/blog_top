@@ -1,6 +1,9 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import routes from './routes';
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
+import passport from 'passport';
+import authController from 'controllers/authController';
 
 // Required for process.env
 dotenv.config();
@@ -10,6 +13,18 @@ const app: Express = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+passport.use(
+  new JwtStrategy(
+    {
+      // Get token from Authentication Header
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // Secret key to compare to
+      secretOrKey: process.env.JWT_SECRET!,
+    },
+    authController.verifyFunction,
+  ),
+);
 
 app.use('/', routes);
 
