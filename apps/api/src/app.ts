@@ -26,14 +26,6 @@ passport.use(
   ),
 );
 
-// Added to avoid having to pass req.user into each controller/view
-// Puts into currentUser local variable
-// MUST BE AFTER PASSPORT AND BEFORE ROUTER for controller/views to be able to see
-app.use((req, res, next) => {
-  res.locals.currentUser = req.user;
-  next();
-});
-
 // Routing
 app.use('/', routes);
 
