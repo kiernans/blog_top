@@ -51,6 +51,7 @@ async function createPost(req: Request, res: Response) {
 
 async function getPost(req: Request, res: Response) {
   try {
+    if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
     const { postId } = req.params;
@@ -80,6 +81,7 @@ interface PostData {
 
 async function updatePost(req: Request, res: Response) {
   try {
+    if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
     const { postId } = req.params;
