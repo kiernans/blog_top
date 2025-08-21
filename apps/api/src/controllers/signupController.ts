@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { body, validationResult, Meta, matchedData } from 'express-validator';
 import { prisma } from '../lib/prisma';
 
@@ -7,11 +7,6 @@ import { prisma } from '../lib/prisma';
 // Used in validateUser
 function passwordMatches(value: string, { req }: Meta) {
   return value === req.body.password;
-}
-
-// Fixes issue of typescript not knowing if error has code property
-function isPgError(error: unknown): error is { code: string } {
-  return typeof error === 'object' && error !== null && 'code' in error;
 }
 
 const validateUser = [
@@ -52,7 +47,7 @@ const validateUser = [
 
 const createUser = [
   ...validateUser,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -77,13 +72,7 @@ const createUser = [
         data,
       });
     } catch (err) {
-      //TODO Send error that tells user why user wasn't created
-      console.error(err);
-      return res.status(401).json({
-        success: false,
-        message: 'Failed to create new user',
-        error: err,
-      });
+      next(err);
     }
   },
 ];

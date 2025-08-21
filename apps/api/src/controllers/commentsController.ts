@@ -1,9 +1,9 @@
 import { prisma } from '@lib/prisma';
 import type { User } from '@genPrisma/client';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { body, validationResult, matchedData } from 'express-validator';
 
-async function getComments(req: Request, res: Response) {
+async function getComments(req: Request, res: Response, next: NextFunction) {
   try {
     const { postId } = req.params;
     const comments = await prisma.comment.findMany({
@@ -17,12 +17,7 @@ async function getComments(req: Request, res: Response) {
       data: comments,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(501).json({
-      success: false,
-      message: 'Unable to retrieve comments',
-    });
+    next(err);
   }
 }
 
@@ -37,7 +32,7 @@ const validateComment = [
 // WARNING Storing comment as is after validation, may need to escape output
 const createComment = [
   ...validateComment,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
 
@@ -67,17 +62,12 @@ const createComment = [
         message: 'Comment created successfully',
       });
     } catch (err) {
-      console.error(err);
-
-      return res.status(501).json({
-        success: false,
-        error: err,
-      });
+      next(err);
     }
   },
 ];
 
-async function getComment(req: Request, res: Response) {
+async function getComment(req: Request, res: Response, next: NextFunction) {
   try {
     const { commentId: id } = req.params;
 
@@ -92,12 +82,7 @@ async function getComment(req: Request, res: Response) {
       data: comment,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(501).json({
-      success: false,
-      error: err,
-    });
+    next(err);
   }
 }
 
@@ -105,7 +90,7 @@ async function getComment(req: Request, res: Response) {
 const updateComment = [
   ...validateComment,
 
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
 
@@ -134,17 +119,12 @@ const updateComment = [
         data: comment,
       });
     } catch (err) {
-      console.error(err);
-
-      return res.status(501).json({
-        success: false,
-        error: err,
-      });
+      next(err);
     }
   },
 ];
 
-async function deleteComment(req: Request, res: Response) {
+async function deleteComment(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
@@ -167,12 +147,7 @@ async function deleteComment(req: Request, res: Response) {
       data: comment,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(501).json({
-      success: false,
-      error: err,
-    });
+    next(err);
   }
 }
 

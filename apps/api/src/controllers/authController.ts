@@ -65,13 +65,7 @@ const login = [
         },
       );
     } catch (err) {
-      console.error(err);
-      if (err instanceof Error) {
-        return res.status(401).json({
-          success: false,
-          message: err.message,
-        });
-      } else next(err);
+      next(err);
     }
   },
 ];
@@ -100,7 +94,6 @@ async function verifyFunction(jwt_payload: any, done: VerifiedCallback) {
     // User found, authentication succeeded
     return done(null, user);
   } catch (err) {
-    console.log(err);
     done(err, false);
   }
 }

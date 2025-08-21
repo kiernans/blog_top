@@ -4,6 +4,7 @@ import routes from './routes';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import passport from 'passport';
 import authController from 'controllers/authController';
+import { formatPrismaError } from '@errors/error';
 
 // Required for process.env
 dotenv.config();
@@ -39,6 +40,6 @@ app.listen(PORT, () => {
 // Must be placed after all other middleware to catch error properly
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err);
-  res.status(500).send(err.message);
+  const error = formatPrismaError(err);
+  return res.status(error.status).json(error);
 });

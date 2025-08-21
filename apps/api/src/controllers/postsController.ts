@@ -1,10 +1,9 @@
 import { prisma } from '@lib/prisma';
 import type { User } from '@genPrisma/client';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { body, validationResult, matchedData } from 'express-validator';
-import { error } from 'console';
 
-async function getPosts(req: Request, res: Response) {
+async function getPosts(req: Request, res: Response, next: NextFunction) {
   try {
     const posts = await prisma.post.findMany();
 
@@ -13,12 +12,7 @@ async function getPosts(req: Request, res: Response) {
       data: posts,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(401).json({
-      success: false,
-      message: 'Unable to retrieve posts',
-    });
+    next(err);
   }
 }
 
@@ -40,7 +34,7 @@ const validatePost = [
 // WARNING Storing post as is after validation, may need to escape output
 const createPost = [
   ...validatePost,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
 
@@ -67,16 +61,12 @@ const createPost = [
         message: 'Post created successfully',
       });
     } catch (err) {
-      console.error(err);
-      return res.status(401).json({
-        success: false,
-        error: err,
-      });
+      next(err);
     }
   },
 ];
 
-async function getPost(req: Request, res: Response) {
+async function getPost(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
@@ -94,18 +84,7 @@ async function getPost(req: Request, res: Response) {
       data: post,
     });
   } catch (err) {
-    console.error(err);
-    if (err instanceof Error) {
-      return res.status(501).json({
-        success: false,
-        message: err.message,
-      });
-    }
-
-    return res.status(401).json({
-      success: false,
-      error: err,
-    });
+    next(err);
   }
 }
 
@@ -118,7 +97,7 @@ interface PostData {
 // WARNING Storing post as is after validation, may need to escape output
 const updatePost = [
   ...validatePost,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
 
@@ -155,16 +134,12 @@ const updatePost = [
         data: post,
       });
     } catch (err) {
-      console.error(err);
-      return res.status(401).json({
-        success: false,
-        error: err,
-      });
+      next(err);
     }
   },
 ];
 
-async function deletePost(req: Request, res: Response) {
+async function deletePost(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user as User;
     const userId = user.id;
@@ -185,12 +160,7 @@ async function deletePost(req: Request, res: Response) {
       data: post,
     });
   } catch (err) {
-    console.error(err);
-
-    return res.status(401).json({
-      success: false,
-      error: err,
-    });
+    next(err);
   }
 }
 
