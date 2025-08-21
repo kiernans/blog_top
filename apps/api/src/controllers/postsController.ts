@@ -1,6 +1,5 @@
 import { prisma } from '@lib/prisma';
 import type { User } from '../../generated/prisma/client';
-import { fail } from 'assert';
 import { Request, Response } from 'express';
 
 async function getPosts(req: Request, res: Response) {
@@ -15,7 +14,7 @@ async function getPosts(req: Request, res: Response) {
     console.error(err);
 
     return res.status(401).json({
-      success: fail,
+      success: false,
       message: 'Unable to retrieve posts',
     });
   }
