@@ -1,5 +1,5 @@
 import { prisma } from '@lib/prisma';
-import type { User } from '../../generated/prisma/client';
+import type { User } from '@genPrisma/client';
 import { Request, Response } from 'express';
 
 async function getComments(req: Request, res: Response) {
