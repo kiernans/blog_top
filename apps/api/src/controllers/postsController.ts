@@ -1,6 +1,8 @@
 import { prisma } from '@lib/prisma';
 import type { User } from '@genPrisma/client';
 import { Request, Response } from 'express';
+import { body, validationResult, matchedData } from 'express-validator';
+import { error } from 'console';
 
 async function getPosts(req: Request, res: Response) {
   try {
@@ -20,33 +22,59 @@ async function getPosts(req: Request, res: Response) {
   }
 }
 
-async function createPost(req: Request, res: Response) {
-  try {
-    if (!req.user) throw new Error('Unauthorized');
-    const user = req.user as User;
-    const userId = user.id;
-    const { title, content } = req.body;
+// Validate input -> use parameterized queries -> Escape output if needed
+const validatePost = [
+  body('title')
+    .trim()
+    .isLength({ min: 5, max: 100 })
+    .withMessage('Title must be between 5 and 100 characters long.')
+    .matches(/^[a-zA-Z0-9\s.,!?'"-]+$/)
+    .withMessage('Title contains invalid characters.'),
 
-    await prisma.post.create({
-      data: {
-        title,
-        content,
-        userId,
-      },
-    });
+  body('content')
+    .trim()
+    .isLength({ min: 10 })
+    .withMessage('Content must be at least 10 characters long.'),
+];
 
-    return res.status(201).json({
-      success: true,
-      message: 'Post created successfully',
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(401).json({
-      success: false,
-      error: err,
-    });
-  }
-}
+// WARNING Storing post as is after validation, may need to escape output
+const createPost = [
+  ...validatePost,
+  async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
+
+      //Validation failed
+      if (!errors.isEmpty()) {
+        return res.status(401).json(errors);
+      }
+
+      if (!req.user) throw new Error('Unauthorized');
+      const user = req.user as User;
+      const userId = user.id;
+      const { title, content } = matchedData(req);
+
+      await prisma.post.create({
+        data: {
+          title,
+          content,
+          userId,
+        },
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Post created successfully',
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(401).json({
+        success: false,
+        error: err,
+      });
+    }
+  },
+];
 
 async function getPost(req: Request, res: Response) {
   try {
@@ -87,43 +115,54 @@ interface PostData {
   content?: string;
 }
 
-async function updatePost(req: Request, res: Response) {
-  try {
-    if (!req.user) throw new Error('Unauthorized');
-    const user = req.user as User;
-    const userId = user.id;
-    const { postId: id } = req.params;
-    const { title, content } = req.body;
+// WARNING Storing post as is after validation, may need to escape output
+const updatePost = [
+  ...validatePost,
+  async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
 
-    const updatedData: PostData = {};
-    // Only update filled out sections
-    if (title !== undefined) updatedData.title = title;
+      //Validation failed
+      if (!errors.isEmpty()) {
+        return res.status(401).json(errors);
+      }
 
-    if (content !== undefined) updatedData.content = content;
+      if (!req.user) throw new Error('Unauthorized');
+      const user = req.user as User;
+      const userId = user.id;
+      const { postId: id } = req.params;
+      const { title, content } = req.body;
 
-    const post = await prisma.post.update({
-      where: {
-        id,
-        userId,
-      },
-      data: updatedData,
-    });
+      const updatedData: PostData = {};
+      // Only update filled out sections
+      if (title !== undefined) updatedData.title = title;
 
-    if (!post) throw new Error('Post not found');
+      if (content !== undefined) updatedData.content = content;
 
-    return res.status(201).json({
-      success: true,
-      message: 'Post updated successfully',
-      data: post,
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(401).json({
-      success: false,
-      error: err,
-    });
-  }
-}
+      const post = await prisma.post.update({
+        where: {
+          id,
+          userId,
+        },
+        data: updatedData,
+      });
+
+      if (!post) throw new Error('Post not found');
+
+      return res.status(201).json({
+        success: true,
+        message: 'Post updated successfully',
+        data: post,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(401).json({
+        success: false,
+        error: err,
+      });
+    }
+  },
+];
 
 async function deletePost(req: Request, res: Response) {
   try {
