@@ -53,12 +53,13 @@ async function getPost(req: Request, res: Response) {
     if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
-    const { postId } = req.params;
-    const id = Number(postId);
+    const { postId: id } = req.params;
 
     const post = await prisma.post.findUnique({
       where: { id, userId },
     });
+
+    if (!post) throw new Error('Post not found');
 
     return res.status(201).json({
       success: true,
@@ -66,6 +67,13 @@ async function getPost(req: Request, res: Response) {
     });
   } catch (err) {
     console.error(err);
+    if (err instanceof Error) {
+      return res.status(501).json({
+        success: false,
+        message: err.message,
+      });
+    }
+
     return res.status(401).json({
       success: false,
       error: err,
@@ -84,8 +92,7 @@ async function updatePost(req: Request, res: Response) {
     if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
-    const { postId } = req.params;
-    const id = Number(postId);
+    const { postId: id } = req.params;
     const { title, content } = req.body;
 
     const updatedData: PostData = {};
@@ -101,6 +108,8 @@ async function updatePost(req: Request, res: Response) {
       },
       data: updatedData,
     });
+
+    if (!post) throw new Error('Post not found');
 
     return res.status(201).json({
       success: true,
@@ -120,8 +129,7 @@ async function deletePost(req: Request, res: Response) {
   try {
     const user = req.user as User;
     const userId = user.id;
-    const { postId } = req.params;
-    const id = Number(postId);
+    const { postId: id } = req.params;
 
     const post = await prisma.post.delete({
       where: {
@@ -129,6 +137,8 @@ async function deletePost(req: Request, res: Response) {
         userId,
       },
     });
+
+    if (!post) throw new Error('Post not found');
 
     return res.status(201).json({
       success: true,
