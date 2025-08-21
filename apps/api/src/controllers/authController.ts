@@ -4,7 +4,6 @@ import { body, validationResult, matchedData } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { VerifiedCallback } from 'passport-jwt';
-import passport from 'passport';
 
 const validateUser = [
   body('email')
