@@ -27,6 +27,7 @@ async function getComments(req: Request, res: Response) {
 
 async function createComment(req: Request, res: Response) {
   try {
+    if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
     // WARNING: mergeParams in comments.ts is needed to allow commentsController.createComment
@@ -82,9 +83,10 @@ async function getComment(req: Request, res: Response) {
 
 async function updateComment(req: Request, res: Response) {
   try {
-    const { postId, commentId: id } = req.params;
+    if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
+    const { postId, commentId: id } = req.params;
 
     const { content } = req.body;
 
@@ -112,9 +114,10 @@ async function updateComment(req: Request, res: Response) {
 
 async function deleteComment(req: Request, res: Response) {
   try {
-    const { postId, commentId: id } = req.params;
+    if (!req.user) throw new Error('Unauthorized');
     const user = req.user as User;
     const userId = user.id;
+    const { postId, commentId: id } = req.params;
 
     const comment = await prisma.comment.delete({
       where: {
