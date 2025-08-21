@@ -74,6 +74,7 @@ async function getPost(req: Request, res: Response) {
   }
 }
 
+// Needed this to create an empty object to store form data only if entered
 interface PostData {
   title?: string;
   content?: string;
